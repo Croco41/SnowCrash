@@ -1,0 +1,21 @@
+Après avoir fait cette commande:
+cat /etc/passwd
+
+On obtient la ligne:
+flag01:42hDRfypTqqnw:3001:3001::/home/flag/flag01:/bin/bash
+
+Nom d'utilisateur : flag01
+Mot de passe : 42hDRfypTqqnw (bon nous avons essayé de le rentrer tel quel... fail)
+UID (User ID) : 3001
+GID (Group ID) : 3001
+Commentaires / Informations utilisateur : Champ vide dans ce cas
+Répertoire personnel : /home/flag/flag01
+Shell par défaut : /bin/bash
+
+On a voulu craquer le hash, nous avions trouvé 2 logiciels:
+hashcat et john the ripper. Nous avons utilisé john the ripper à cause du john du level00:
+
+Commande lancée dans John:
+./john ../../level01/ressource/hash.txt       
+
+code trouvé : abcdefg
