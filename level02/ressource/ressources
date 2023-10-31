@@ -1,0 +1,8 @@
+Dans ce level02, un seul fichier en clair : level02.pcap
+un fichier .pcap est un fichier de capture de réseau "packet capture"
+Il sert à enregistrer et stocker des données de trafic réseau
+(ex : en-tetes de protocole, IP source / IP destinataire, ports, horodatages)
+Ces fichiers peuvent être ouverts avec Wireshark ou tcpdump.
+
+Wireshark est déjà installé sur nos sessions.
+
