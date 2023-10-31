@@ -1,0 +1,56 @@
+Dans le dossier level03, le seul fichier non caché 
+était un executable avec des permissions spéciales
+notées s. (-rwsr-sr-x )
+
+s : indique le bit "setuid" (set user ID upon execution) ou "setgid" (set group ID upon execution),
+Le premier s remplace le x dans la partie des permissions
+du propriétaire (user). Cela signifie que le bit "setuid"
+est activé. Lorsqu'un exécutable avec ce bit est lancé,
+il s'exécute avec les privilèges du propriétaire du fichier,
+pas avec ceux de l'utilisateur qui le lance. Dans ce cas,
+peu importe qui exécute le fichier level03, il s'exécutera
+avec les privilèges de l'utilisateur flag03.
+
+Le deuxième s remplace le x dans la partie des permissions
+du groupe (group). Cela indique que le bit "setgid" est
+activé. Lorsqu'un fichier avec ce bit est exécuté, il
+s'exécute avec les privilèges du groupe propriétaire du
+fichier. Ici, le fichier s'exécutera avec les privilèges
+du groupe level03.
+
+Après analyse de l'executable avec strings, objdump et au lancement,
+nous trouvons que d'une part ce programme affiche Exploit me, 
+et que, à l'intérieur, il mentionne l'env.
+"/usr/bin/env echo Exploit me"
+
+
+Avec gdb et un breakpoint à system() 
+Breakpoint 2, 0xb7e6b060 in system () from /lib/i386-linux-gnu/libc.so.6
+
+La commande suivante nous montre les données passées à system().
+(gdb) x/s *((char **)($esp+4))
+0x80485e0:	 "/usr/bin/env echo Exploit me"
+
+Si on peut accéder à system via ce fichier cela peut être uns piste à exploiter. 
+Nous pourrions donc injecter nos propres commandes!
+
+Nous avons donc voulu remplacer la commande "officielle" echo par le nôtre.
+Pour cela nous avons cherché dans la VM SnowCrash un dossier dans lequel
+nous avions le droit d'écrire. Et nous avons utilisé la commande
+scp pour copier notre nouveau echo (exploit/echo) : 
+
+scp -P 4241 -r . level03@127.0.0.1:/tmp/
+
+On a ensuite fait deux choses pour pouvoir exploiter ce nouveau echo :
+- un chmod -x sur notre echo
+- un changement du PATH de l'environnement pour que notre echo
+soit utilisé en priorité : 
+export PATH=/tmp/exploit:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games
+
+Notre echo contenait simplement : 
+echo oki
+getflag
+
+La commande getflag a donc ete exécutée avec les droits de
+l'utilisateur flag03 et nous avons obtenu le token pour passer
+au level suivant !
