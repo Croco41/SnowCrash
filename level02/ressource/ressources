@@ -6,3 +6,26 @@ Ces fichiers peuvent être ouverts avec Wireshark ou tcpdump.
 
 Wireshark est déjà installé sur nos sessions.
 
+Avec une commande scp :
+scp -P 4241 level02@127.0.0.1:/home/user/level02/level02.pcap .
+
+(ATTENTION : a taper depuis la console locale et PAS SSH !!!)
+
+scp : (Secure Copy Protocol) est utilisée pour transférer des fichiers de manière
+sécurisée entre des hôtes sur un réseau. Elle repose sur le protocole SSH. Elle
+préserve les timestamps, les permissions et d'autres attributs de fichier lors du transfert.
+
+Une fois copié, on change donc les persmissions du fichier et on l'ouvre avec WireShark.
+
+Dans le fichier brut Vimm, on avait vu le terme password en clair (au milieu de
+caractères illisibles). Nous avons donc recherché le mot dans la centaine de paquets
+repertoriés dans WireShark. Nous l'avons trouvé au paquet 43...
+
+Nous avons donc pensé que les paquets suivants seraient tout simplement l'envoi du
+mot de passe et avons repertorié les lettres (envoyées une par une).
+
+Ce mot de passe semblait entrecoupé d'espace mais en regardant la table ASCII,
+nous nous sommes rendu compte qu'il s'agissait de DELETE. Nous avons donc repris
+le mot de passe en retirant les lettres supprimées. Ce qui nous a donné :
+
+ft_waNDReL0L (Attention c'est un zero...)
