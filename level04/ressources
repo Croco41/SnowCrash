@@ -1,0 +1,68 @@
+Dans le repertoire level04, nous n'avons qu'un fichier
+non caché : level04.pl, qui est script Perl.
+
+comme precedemment, il a les permissions s, donc les droits
+utilisateurs du flag04.
+
+En examinant son contenu de ce script : 
+level04@SnowCrash:~$ cat level04.pl 
+#!/usr/bin/perl
+# localhost:4747
+use CGI qw{param};
+print "Content-type: text/html\n\n";
+sub x {
+  $y = $_[0];
+  print `echo $y 2>&1`;
+}
+x(param("x"));
+
+Voici une analyse de ce que fait le script :
+
+En-tête Perl et CGI : Le script commence par l'en-tête
+Perl (#!/usr/bin/perl) et importe le module CGI de Perl.
+
+Impression de l'en-tête HTTP : Il imprime un en-tête HTTP
+(Content-type: text/html\n\n), ce qui est essentiel pour
+les scripts CGI afin d'indiquer au navigateur que la sortie
+sera du contenu HTML.
+
+Définition de la fonction x :
+
+Cette fonction prend un argument ($_[0]).
+Elle stocke cet argument dans une variable $y.
+Elle exécute ensuite une commande shell en utilisant des
+backticks (` `, ce qui permet l'exécution de commandes système).
+La commande exécutée est echo $y 2>&1, qui affiche la valeur
+de $y et redirige aussi la sortie d'erreur vers la sortie standard.
+Appel de la fonction x avec paramètre CGI :
+
+La fonction x est appelée avec param("x") comme argument.
+param("x") obtiendra la valeur du paramètre x transmis au
+script via une requête HTTP (GET ou POST).
+
+On remarque donc qu'on peut executer des commandes shell en envoyant
+le x que l'on veut. 
+
+Nous avons simplement besoin d'acceder a l'adresse 
+http://localhost:4747/level04.pl?x=commande
+mais la VM ne le permet pas, il n'y a qu'un terminal.
+
+Nous avons donc utilisé la commande curl et remplacé commande par getflag:
+curl http://localhost:4747/level04.pl?x=$(getflag)
+
+Cependant nos premiers essais ne fonctionnaient pas, car la commande était 
+executée avant l'envoi de la requete http et était interprétee comme une
+partie de l'url. 
+
+Nous avons donc encapsulé notre commande dans des backtick et avons ajouté
+des guillemets autour de l'Url pour éviter que le shell local n'interprète
+la commande avant l'envoi de la requête : 
+
+curl "http://localhost:4747/level04.pl?x=\`getflag\`"
+
+Ainsi, quand le script level04.pl reçoit la requête, il devrait interpréter
+la valeur de x comme une commande shell à exécuter, ce qui devrait exécuter
+getflag sur le serveur.
+
+(finalement nous avons aussi testé sans les guillemets, 
+et cela fonctionne...)
