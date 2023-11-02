@@ -1,0 +1,42 @@
+Level 09
+
+Dans ce level, nous avons a nouveau un programme (level09) et un fichier token.
+
+vim token nous donne : f4kmm6p|=<82>^?p<82>n<83><82>DB<83>Du{^?<8c><89>
+
+et strings level09 nous donne quelques info :
+You should not reverse this
+et le programme semble se prémunir des injections (via la variable LD_PRELOAD)
+
+Nous testons le programme sur token :
+./level09 token -> donne tpmhr
+
+Nous testons différentes entrées :
+./level09 abc -> donne ace
+./level09 test -> donne tfuw
+
+Il nous semble donc que level09 prend une chaine de caracteres et deplace les
+valeur de (+ pos) en partant de zero. Ce calcul se passe bien sur les petites
+valeurs mais dès qu'on dépasse les caractères prévus par la table ASCII, on
+obtient des valeurs farfelues...
+
+Quand on fait cat token, tous les caracteres n'etaient pas visibles. Nous devions
+donc trouver un moyen de représenter sous une autre forme ces donnés.
+
+Nous avons donc utilisé la commande od (od = octal dump) qui montre les données
+binaires d'un fichier sous un format de sortie de notre choix (decimal, octal,
+hexadecimal, etc)
+
+Nous l'avons voulue en decimal (pour mettre en relation avec la table ASCII)
+Ici, -tu1 spécifie que la sortie doit être en décimal (-t) avec des unités de 1 octet (u1). Ce qui nous donne :
+
+level09@SnowCrash:~$ od -tu1 token
+0000000 102 52 107 109 109 54 112 124 61 130 127 112 130 110 131 130
+0000020 68 66 131 68 117 123 127 140 137 10
+0000032
+
+Les valeurs 0000... en début de ligne nous donne l'offset (addressage) d'emplacement
+dans le fichier, on peut donc les enlever, et le 10 final représente la fin (\n).
+
+Nous allons donc faire un script python pour reverse decode ces valeurs, et nous
+obtenons le password de flag09 qui nous donne notre dernier token.
