@@ -1,0 +1,23 @@
+Level 07
+
+Ici, nous ne disposons que d'un fichier executable level07.
+-rwsr-sr-x 1 flag07  level07 8805 Mar  5  2016 level07
+
+Comme précédemment, il possede les permissions s, c'est-à-dire 
+avec les droits du createur du fichier (ici flag07)
+
+En faisant strings level07, quelques lignes nous interpellent :
+getenv
+LOGNAME
+/bin/echo %s 
+...
+
+on remarque en executant le programme que celui-ci affiche 
+le contenu de LOGNAME.
+
+Alors tout simplement on modifie la variable environnement LOGNAME:
+export LOGNAME=';getflag;'
+
+(les ; sont nécessaire pour que echo interprete la commande)
+
+On relance le script et nous obtenons notre token.
