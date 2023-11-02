@@ -1,0 +1,39 @@
+Nous avons cette fois un programme et un fichier token:
+
+-rwsr-s---+ 1 flag08 level08 8617 Mar 5 2016 level08
+-rw------- 1 flag08 flag08 26 Mar 5 2016 token
+
+On se sait jamais...
+level08@SnowCrash:~$ ./level08 token
+You may not access 'token'
+
+et non! il va falloir creuser
+
+=> strings level08
+
+La chaîne la plus intéressante ici est "You may not access '%s'",
+ce qui implique que le programme effectue une vérification
+pour empêcher l'accès à certains fichiers ou chemins.
+La présence de "token" dans la sortie de strings suggère
+également que le nom de fichier "token" est spécifiquement
+recherché et bloqué.
+
+La fonction strstr apparaît également dans la sortie,
+ce qui indique que le programme utilise probablement cette fonction
+pour rechercher la sous-chaîne "token" dans le chemin du fichier fourni.
+
+On va donc chercher à acceder au fichier token sans utiliser le
+nom token!
+
+Creation d'un lien symbolique:
+ln -s /home/user/level08/token /tmp/test
+./level08 /tmp/test
+
+et ça fonctionne!!!!!!
+quif5eloekouj29ke0vouxean
+
+On lance su level09
+et le token ne marche pas...
+
+C'etait en realité le password du su flag08 qui lui nous a donné le
+vrai token ;)
