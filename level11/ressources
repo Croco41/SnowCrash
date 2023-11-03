@@ -1,0 +1,35 @@
+Level11 -> Injection de Commande shell
+
+Dans ce niveau, nous n'avons qu'un fichier accessible : level11.lua
+cat sur level11.lua nous informe que ce script fait tourner un petit serveur
+qui est deja ouvert sur le port 5151, un client qui tente de se connecter doit
+fournir un mot de passe, ce mot de passe est hashé et comparé avec un hash présent
+en dur dans le script.
+
+Evidemment, notre premiere approche, c'est, puisque nous avons et le hash, et la 
+méthode de hashage (sha1sum), de le reverse-hash. Nous allons sur un site qui fait
+le processus et nous obtenons...
+
+NotSoEasy. 
+
+LOOOOOOOOOLLLLLL !!!!
+
+Reprenons. 
+En relisant le script, nous réalisons que la fonction de hashage utilise le mot
+de passe envoyé par le client, et le concatene a une commande shell (ici echo) 
+sans protection/verification : la commande io.popen construit une commande shell
+directement avec une entrée utilisateur sans aucune forme de validation ou 
+d'échappement des caractères potentiellement dangereux.
+
+Nous pouvons donc envisager une injection de commande lors de la saisie du mot de
+passe. La premiere idée était d'invalider la commande echo, de mettre le hash donné
+en dur, et d'empecher avec un # de commentaire l'execution de sha1sum. 
+
+Cette méthode ne fonctionnait pas, et puis en y réfléchissant : pour quoi faire ?
+Nous avons tout simplement lancé la commande getflag et redirigé sa sortie dans un
+fichier... 
+
+Password : ; getflag > /dev/shm/test
+
+et la, meme si la connexion sur ce serveur nous est refusée, nous obtenons le
+token pour le niveau suivant dans le fichier test...
