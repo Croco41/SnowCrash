@@ -1,0 +1,42 @@
+Level12 -> injection de commande via URL
+
+Dans ce niveau, nous avons un script perl Level12.pl sur lequel nous avons les
+droits de lecture et execution.
+
+Un cat du fichier nous donne les info suivantes : 
+- localhost:4646 et CGI -> nous allons faire une requete de type http sur ce port
+- des regex qui transforment notre entrée (passage en majuscule + suppression espaces)
+- @output = `egrep "^$xx" /tmp/xd 2>&1`;
+
+C'est dans cette troisième ligne que l'on trouve la faille : egrep prend une 
+entrée utilisateur non nettoyée. L'entrée de l'utilisateur est injectée 
+directement dans une commande shell, ce qui peut conduire à une exécution de 
+commande shell si on ne la filtre pas correctement.
+
+Nous allons donc faire une fake commande GETFLAG, qui appellera getflag et redirigera
+sa sortie vers un fichier.
+
+On essaye de lancer cette commande via une injection par URL grace a curl : 
+curl "http://localhost:4646/?x=$(GETFLAG)"
+
+Ca ne fonctionne pas.
+
+Au debut, nous avons modifier le path de l'environnement pour inclure notre GETFLAG.
+Mais pourtant la commande curl http://localhost:4646/?x=`GETFLAG` ne
+fonctionnait pas.
+Nous ne PARTAGIONS pas le méme environnement!!
+
+du coup nous devons passer le chemin absolu du notre commande!
+Nous avions essayé avec cette commande:
+curl http://localhost:4646/?x=`/*/*/*/GETFLAG` 
+
+Mais etrangement nous avions le retour sans droit de getflag...
+
+En fait nous execution la commande avant de la transmettre à la requete curl.
+Nous avons donc rajouté les guillemets simples pour que la variable soit transmise en tant 
+que string, et que la substitution de commande ne se fasse que dans le script !
+Dernier essai : 
+
+curl http://localhost:4646/?x='`/*/*/*/GETFLAG`'
+
+Dans notre fichier de redirection, nous obtenons notre token : g1qKMiRpXf53AWhDaU7FEkczr

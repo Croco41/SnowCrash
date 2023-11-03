@@ -1,0 +1,4 @@
+#!/bin/bash
+
+#/bin/echo > /dev/shm/result
+getflag >> /dev/shm/result
