@@ -45,7 +45,7 @@ uid_t getuid(void)
 	return 4242;
 }
 
-On le chmod 7777 et on le compile dans le même répertoire (sinon pb de droits)
+On le chmod 777 et on le compile dans le même répertoire (sinon pb de droits)
 avec la commande suivante :
 
 gcc -shared -fPIC /dev/shm/fake_getuid.c -o /dev/shm/fake_getuid.so

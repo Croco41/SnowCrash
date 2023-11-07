@@ -1,0 +1,94 @@
+Level14 -> surcharge de bibliothèque grace au debugger gdb !
+
+Dans ce répertoire, on n'a... rien. Absolument rien (a part les fichiers cachés habituels)
+La commande find / -user flag14 2>/dev/null ne retourne rien non plus.
+
+Par où commencer ? 
+
+Bon, jusqu'ici, nous avons tenté de lancer le getflag grâce a des exécutables qui nous
+étaient donnés, il nous fallait essentiellement contourner les droits utilisateurs
+et/ou exploiter les failles des executables.
+
+Mais cette fois, c'est la commande getflag elle-même qu'il va falloir leurrer !
+
+Si on lance getflag seule, on recoit le message habituel d'échec : No token here...
+
+Dans le niveau précédent, nous avions leurré un exécutable en surchargeant une bibliothèque
+partagée avec un fake getuid, qui retournait le user voulu. En exportant ce fake getuid dans la
+variable d'environnement LD_PRELOAD, cela fonctionnait. 
+
+Nous avons donc commencé avec cette technique et avons créé un fichier fake.c mais il était
+impossible de le charger. 
+
+Un strings sur /bin/getflag montre que cette commande est protégée contre les injections de 
+librairies dynamiques via LD_PRELOAD : 
+
+strings /bin/getflag :
+- LD_PRELOAD
+- Injection Linked lib detected exit..
+
+Nous avons essayé plusieurs méthodes pour essayer de tromper cette protection (en surchargeant
+des fonctions faisant appel a des fd comme fprintf, fputc, etc) mais ca n'a pas fonctionné.
+
+Grace a strace /bin/getflag, nous savions que cette commande faisait un appel systeme getuid. 
+
+id flag14
+uid=3014(flag14) gid=3014(flag14) groups=3014(flag14),1001(flag)
+
+Grace a id flag14, nous savions que le uid attendu était 3014. 
+Nous avons donc essayé d'utiliser gdb pour modifier le getuid directement sans passer par LD_PRELOAD, 
+mais getflag est aussi protégé pour ne pas fonctionner dans un debugger car il lance lui-même la 
+fonction ptrace qui rentre en conflit avec gdb en retournant -1 et arrête le programme. 
+
+(gdb) run
+Starting program: /bin/getflag 
+You should not reverse this
+[Inferior 1 (process 3564) exited with code 01]
+
+strace getflag:
+...
+ptrace(PTRACE_TRACEME, 0, 0x1, 0)       = -1 EPERM (Operation not permitted)
+...
+
+apres avoir cherché comment bypass ptrace dans gdb (après avoir vainement tenté de surcharger
+ptrace() en bibliothèque partagée via LD_PRELOAD...):
+
+https://gist.github.com/poxyran/71a993d292eee10e95b4ff87066ea8f2
+Start GDB and execute the following commands:
+
+catch syscall ptrace
+commands 1
+set ($eax) = 0
+continue
+end
+
+On peut maintenant debugguer notre getflag
+Break getuid
+run
+step
+set $eax = 3014
+continue
+
+...
+break getuid
+Breakpoint 2 at 0x80484b0
+(gdb) run
+Starting program: /bin/getflag 
+
+Catchpoint 1 (call to syscall ptrace), 0xb7fdd428 in __kernel_vsyscall ()
+
+Catchpoint 1 (returned from syscall ptrace), 0xb7fdd428 in __kernel_vsyscall ()
+
+Breakpoint 2, 0xb7ee4cc0 in getuid () from /lib/i386-linux-gnu/libc.so.6
+(gdb) step
+Single stepping until exit from function getuid,
+which has no line number information.
+0x08048b02 in main ()
+(gdb) print $eax
+$1 = 2014
+(gdb) set $eax=3014
+(gdb) continue
+Continuing.
+Check flag.Here is your token : 7QiHafiNa3HVozsaXkawuYrTstxbpABHD8CPnHJ
+[Inferior 1 (process 3649) exited normally]
+
