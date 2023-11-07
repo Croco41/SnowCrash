@@ -1,0 +1,108 @@
+Level13 -> the LD_PRELOAD trick
+
+Dans ce répertoire, nous avons un executable ./level13 :
+ls -la
+total 20
+dr-x------ 1 level13 level13  120 Mar  5  2016 .
+d--x--x--x 1 root    users    340 Aug 30  2015 ..
+-r-x------ 1 level13 level13  220 Apr  3  2012 .bash_logout
+-r-x------ 1 level13 level13 3518 Aug 30  2015 .bashrc
+-rwsr-sr-x 1 flag13  level13 7303 Aug 30  2015 level13
+-r-x------ 1 level13 level13  675 Apr  3  2012 .profile
+
+un strings ./level13 nous donne quelques informations : 
+- d'après les fonctions utilisées, le code original est en c (strdup, 
+printf, getuid, appel à d'autres fichiers .c)
+- la réponse en cas d'erreur : UID %d started us but we we expect %d
+- ou en cas de succès : your token is %s
+
+un ltrace ./level13 nous indique ceci : 
+ltrace ./level13 
+__libc_start_main(0x804858c, 1, 0xbffff7f4, 0x80485f0, 0x8048660 <unfinished ...>
+getuid()                                               = 2013
+getuid()                                               = 2013
+printf("UID %d started us but we we expe"..., 2013UID 2013 started us but we we expect 4242
+)    = 42
+exit(1 <unfinished ...>
++++ exited (status 1) +++
+
+Donc, ce qui se passe, c'est que ce programme va vérifier le UserId (UID) du
+processus avec getuid() et attend que celui-ci soit 4242 pour fonctionner
+correctement. 
+
+Les approches possibles seraient
+- créer un nouvel utilisateur avec UID 4242 -> on n'a pas les droits...
+- modifier le binaire level13 avec gdb ou hexedit -> pas les droits
+- le LD_PRELOAD trick : il s'agit de charger une bibliothèque partagée avant
+toutes les autres, contenant une fonction getuid() qui retournerait 4242...
+
+Nous essayons le LD_PRELOAD trick : 
+Dans le répertoire /dev/shm/ nous créons un fichier : fake_getuid.c :
+
+#include <sys/types.h>
+uid_t getuid(void)
+{
+	return 4242;
+}
+
+On le chmod 7777 et on le compile dans le même répertoire (sinon pb de droits)
+avec la commande suivante :
+
+gcc -shared -fPIC /dev/shm/fake_getuid.c -o /dev/shm/fake_getuid.so
+
+les flags de compilations : 
+-fPIC -> génère du code indépendant de la position, nécessaire pour créer une bibliothèque partagée
+-shared -> indique que le résultat doit être une bibliothèque partagée
+
+Et nous obtenons donc une bibliothèque partagée /dev/shm/fake_getuid.so
+(l'extention .so désigne les bibliothèques partagées sous Unix, c'est 
+l'équivalent de .dylib sous Mac OS X, et .dll sous Windows...)
+
+Pour utiliser notre bibliothèque partagée, nous essayons de la charger via la
+variable d'environnement LD_PRELOAD, avec la commande suivante : 
+LD_PRELOAD=/dev/shm/fake_getuid.so ./level13
+
+Mais cela ne fonctionne pas.
+On essaie une autre option : on exporte notre bibliothèque dans la variable d'env
+export LD_PRELOAD=/dev/shm/fake_getuid.so
+la commande env nous indique que notre variable a bien été changée mais 
+lorsqu'on lance ./level13, cela ne fonctionne toujours pas. 
+
+Il semblerait que le sytème désactive la variable d'environnement LD_PRELOAD
+pour notre executable (c'est une mesure de sécurité commune sur les Unix, pour
+les binaires setuid/getuid...) Pour vérifier si c'est le cas, nous utilisons
+les outils de tracage linux strace et ltrace. 
+
+strace et ltrace sont des fonctions de debogage de Linux.
+- ltrace intercepte et enregistre les appels de bibliothèque dynamiques appelés par l'exécutable
+- strace surveille les appels sytème utilisés par un programme, ainsi que tous 
+les signaux qu'il recoit.
+
+Avec la commande suivante : 
+
+strace -e trace=open,openat ./level13
+(flag -e trace=open,openat = filtre la réponse pour n'afficher que les appels 
+à open et openat)
+En exécutant cette commande, strace va lancer ./level13 et enregistrer tous
+les appels à open et openat que le programme effectue. Cela inclura les
+tentatives d'ouverture des fichiers de bibliothèques dynamiques, y compris
+celles spécifiées dans LD_PRELOAD, si le programme essaye de les charger.
+
+Résultat : 
+open("/dev/shm/fake_getuid.so", O_RDONLY|O_CLOEXEC) = 3
+open("/etc/ld.so.cache", O_RDONLY|O_CLOEXEC) = 3
+open("/lib/i386-linux-gnu/libc.so.6", O_RDONLY|O_CLOEXEC) = 3
+your token is 2A31L79asukciNyi8uppkEuSx
+
+Ou avec la commande ltrace ./level13 
+__libc_start_main(0x804858c, 1, 0xbffff7d4, 0x80485f0, 0x8048660 <unfinished ...>
+getuid()                                               = 4242
+strdup("boe]!ai0FB@.:|L6l@A?>qJ}I")                    = 0x0804b008
+printf("your token is %s\n", "2A31L79asukciNyi8uppkEuSx"your token is 2A31L79asukciNyi8uppkEuSx
+) = 40
++++ exited (status 40) +++
+
+
+Alors que l'executable ./level13 est protégé contre le LD_PRELOAD trick, 
+les fonctions strace (ou ltrace) forcent l'appel à la nouvelle bibliothèque
+et trompent le programme...
