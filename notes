@@ -1,0 +1,85 @@
+Lancement VM
+SnowCrash login: level00
+Password: level00
+
+su flag00
+Password: nottoohardhere
+getflag
+token: x24ti5gi3x0ol2eh4esiuxias
+su level01 
+Password: (entrer token)
+
+su flag01
+Password: abcdefg
+getflag
+token: f2av5il02puano7naaf6adaaf
+su level02
+Password: (entrer token)
+
+su flag02
+Password: ft_waNDReL0L (attention c'est un zero)
+getflag
+token: kooda2puivaav1idi4f57q8iq
+su level03
+Password: (entrer token)
+
+su flag03 (pas besoin -> injection echo)
+token: qi0maab88jeaj46qoumi7maus
+su level04
+Password: (entrer token)
+
+su flag04 (pas besoin -> injection curl)
+token: ne2searoevaevoem4ov4ar8ap
+su level05
+Password: (entrer token)
+
+su flag05 (pas besoin -> injection script)
+token: viuaaale9huek52boumoomioc
+su level06
+Password: (entrer token)
+
+su flag06 (pas besoin -> injection script)
+token: wiok45aaoguiboiki2tuin6ub
+su level07
+Password: (entrer token)
+
+su flag07 (pas besoin -> modif env)
+token: fiumuikeil55xe9cu4dood66h
+su level08
+Password: (entrer token)
+
+su flag08
+Password: quif5eloekouj29ke0vouxean
+getflag
+token: 25749xKZ8L7DkSCwJkT9dyv6f
+su level09
+Password: (entrer token)
+
+su flag09
+Password: f3iji1ju5yuevaus41q1afiuq
+getflag
+token: s5cAJpM8ev6XHw998pRWG728z
+su level10
+Password: (entrer token)
+
+su flag10
+Password: woupa2yuojeeaaed06riuj63c
+getflag
+token: feulo4b72j7edeahuete3no7c
+su level11
+Password: (entrer token)
+
+su flag11 (pas besoin -> injection de commande)
+token: fa6v5ateaw21peobuub8ipe6s
+su level12
+Password: (entrer token)
+
+su flag12 (pas besoin -> injection de commande)
+token: g1qKMiRpXf53AWhDaU7FEkczr
+su level13
+Password: (entrer token)
+
+su flag13 (pas besoin -> LD_PRELOAD trick)
+token: 2A31L79asukciNyi8uppkEuSx
+su level14
+Password: (entrer token)
