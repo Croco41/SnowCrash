@@ -1,7 +1,7 @@
 # Projet SnowCrash
 
-![Statut du projet](https://img.shields.io/badge/statut-compl%C3%A9t%C3%A9-4caf50) 
-![Outils Utilisés](https://img.shields.io/badge/outils%20utilis%C3%A9s-GDB%20%7C%20ltrace%20%7C%20strace%20%7C%20objdump-ADD8E6)  
+![Statut du projet](https://img.shields.io/badge/statut-compl%C3%A9t%C3%A9-4caf50) ![Difficulté](https://img.shields.io/badge/difficulté-débutant-green)
+![Outils Utilisés](https://img.shields.io/badge/outils%20utilis%C3%A9s-GDB%20%7C%20ltrace%20%7C%20strace%20%7C%20John%20the%20Ripper%20%7C%20Wireshark-ADD8E6)  
 
 ## Description
 
@@ -10,8 +10,8 @@
 Chaque niveau se déroule dans une machine virtuelle (VM) 64 bits fournie, et présente un challenge à relever pour trouver un mot de passe permettant d'accéder au niveau suivant. Les méthodes varient de la simple exploration système à des techniques plus avancées d'exploitation.
 
 Les compétences développées incluent :  
-- La recherche et l'exploitation des vulnérabilités, comme les problèmes de permissions, les injections de commande, la manipulation des fichiers, etc
-- L'utilisation d'outils de débogage et d'analyse tels que `GDB`, `ltrace`, `strace`, `objdump`, etc.
+- La recherche et l'exploitation des vulnérabilités, comme les problèmes de permissions, les injections de commande, la manipulation des fichiers, ...
+- L'utilisation d'outils de débogage et d'analyse tels que `GDB`, `ltrace`, `strace`, `John the Ripper`, `Wireshark`.
 - Le renforcement des bonnes pratiques de développement sécurisé.
 
 ## Niveaux et Vulnérabilités
@@ -52,7 +52,7 @@ Les compétences développées incluent :
 
 4. **Outils recommandés :**
    - **Débogage et Analyse :** `GDB`, `ltrace`, `strace`.
-   - **Ingénierie inverse :** `objdump`, `strings`.
+   - **Ingénierie inverse :** `strings`.
    - **Transfert de fichiers :** `scp` pour extraire et analyser des binaires localement.
        ```bash
         scp -P 4242 levelXX@<ip>:/path/on/the/vm ./path/on/my/machine
