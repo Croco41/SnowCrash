@@ -30,7 +30,7 @@ Les compétences développées incluent :
 | Niveau 09| Reverse de hash                            |
 | Niveau 10| Race Condition                             |
 | Niveau 11|Injection de Commande shell via io.popen  |
-| Niveau 12| Faille via un sous-shell dans un script Perl|
+| Niveau 12| Injection commande et wildcard    |
 | Niveau 13| Modification de valeur de retour avec GDB  |
 | Niveau 14| Exploitation de `getflag`                  |
 
